@@ -1,0 +1,98 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter run -d chrome
+
+## exception
+
+PathNotFoundException: PathNotFoundException: Cannot open file, path = '/home/lazanett/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf' (OS Error: No such file or directory, errno = 2)
+
+```
+#0      _File.throwIfError (dart:io/file_impl.dart:782:7)
+#1      _File.openSync (dart:io/file_impl.dart:575:5)
+#2      ForwardingFile.openSync (package:file/src/forwarding/forwarding_file.dart:74:16)
+#3      ErrorHandlingFile.copySync.<anonymous closure> (package:flutter_tools/src/base/error_handling_io.dart:291:22)
+#4      _runSync (package:flutter_tools/src/base/error_handling_io.dart:549:14)
+#5      ErrorHandlingFile.copySync (package:flutter_tools/src/base/error_handling_io.dart:290:5)
+#6      writeBundle.<anonymous closure> (package:flutter_tools/src/bundle_builder.dart:222:19)
+<asynchronous suspension>
+#7      Future.wait.<anonymous closure> (dart:async/future.dart:525:21)
+<asynchronous suspension>
+#8      writeBundle (package:flutter_tools/src/bundle_builder.dart:177:3)
+<asynchronous suspension>
+#9      WebDevFS.update (package:flutter_tools/src/isolated/devfs_web.dart:1106:9)
+<asynchronous suspension>
+#10     ResidentWebRunner._updateDevFS (package:flutter_tools/src/isolated/resident_web_runner.dart:729:35)
+<asynchronous suspension>
+#11     ResidentWebRunner.run.<anonymous closure> (package:flutter_tools/src/isolated/resident_web_runner.dart:337:41)
+<asynchronous suspension>
+#12     asyncGuard.<anonymous closure> (package:flutter_tools/src/base/async_guard.dart:109:26)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[32m[✓][39m Flutter (Channel stable, 3.32.0, on Ubuntu 22.04.4 LTS 5.15.0-139-generic,
+    locale en_US.UTF-8) [14ms]
+    [32m•[39m Flutter version 3.32.0 on channel stable at /home/lazanett/flutter
+    [32m•[39m Upstream repository https://github.com/flutter/flutter.git
+    [32m•[39m Framework revision be698c48a6 (7 days ago), 2025-05-19 12:59:14 -0700
+    [32m•[39m Engine revision 1881800949
+    [32m•[39m Dart version 3.8.0
+    [32m•[39m DevTools version 2.45.1
+
+[31m[✗][39m Android toolchain - develop for Android devices [9ms]
+    [32m•[39m Android SDK at /home/lazanett/Android/Sdk
+    [31m✗[39m cmdline-tools component is missing.
+      Try installing or updating Android Studio.
+      Alternatively, download the tools from
+      https://developer.android.com/studio#command-line-tools-only and make sure
+      to set the ANDROID_HOME environment variable.
+      See https://developer.android.com/studio/command-line for more details.
+
+[32m[✓][39m Chrome - develop for the web [4ms]
+    [32m•[39m Chrome at google-chrome
+
+[32m[✓][39m Linux toolchain - develop for Linux desktop [89ms]
+    [32m•[39m Ubuntu clang version 12.0.1-19ubuntu3
+    [32m•[39m cmake version 3.22.1
+    [32m•[39m ninja version 1.10.1
+    [32m•[39m pkg-config version 0.29.2
+    [32m•[39m GL_EXT_framebuffer_blit: no
+    [32m•[39m GL_EXT_texture_format_BGRA8888: no
+
+[32m[✓][39m Android Studio (version 2024.3.2) [3ms]
+    [32m•[39m Android Studio at /opt/android-studio-2024.3.2/android-studio
+    [32m•[39m Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    [32m•[39m Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.6+-13368085-b895.109)
+
+[33m[!][39m Android Studio (version unknown) [2ms]
+    [32m•[39m Android Studio at /opt/android-studio
+    [32m•[39m Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    [32m•[39m Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+    [31m✗[39m Unable to determine Android Studio version.
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.6+-13368085-b895.109)
+
+[32m[✓][39m VS Code (version unknown) [2ms]
+    [32m•[39m VS Code at /usr/share/code
+    [32m•[39m Flutter extension version 3.110.0
+    [31m✗[39m Unable to determine VS Code version.
+
+[32m[✓][39m Connected device (2 available) [11ms]
+    [32m•[39m Linux (desktop) • linux  • linux-x64      • Ubuntu 22.04.4 LTS
+      5.15.0-139-generic
+    [32m•[39m Chrome (web)    • chrome • web-javascript • Google Chrome 136.0.7103.92
+
+[32m[✓][39m Network resources [165ms]
+    [32m•[39m All expected network resources are available.
+
+[33m![39m Doctor found issues in 2 categories.
+```
