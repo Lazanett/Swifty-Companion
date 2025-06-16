@@ -31,7 +31,7 @@ class AuthService {
         return token;
       }
     } catch (e) {
-      print('Erreur AuthService.login : $e');
+      print('Error AuthService.login : $e');
     }
     return null;
   }

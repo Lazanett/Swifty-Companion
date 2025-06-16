@@ -3,24 +3,36 @@ import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
+  final TextEditingController _loginController = TextEditingController();
 
   Future<void> login() async {
+    final login = _loginController.text.trim();
+    if (login.isEmpty) {
+      _showError("Please enter a login 42");
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       final token = await AuthService().login();
       if (token != null) {
-        Navigator.pushNamed(context, '/details'); // error
+        Navigator.pushNamed(
+          context,
+          '/details',
+          arguments: {'login': login, 'token': token}, 
+        );
       } else {
-        _showError('Échec de l’authentification');
+        _showError('Authentication failure');
       }
     } catch (_) {
-      _showError('Erreur réseau ou serveur');
+      _showError('Network or server error');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -57,6 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   textAlign: TextAlign.center,
                 ),
               ),
+              TextField(
+                controller: _loginController,
+                decoration: const InputDecoration(
+                  labelText: 'Login 42',
+                  hintText: 'ex: lazanett',
+                ),
+              ),
               const SizedBox(height: 28),
               SizedBox(
                 width: 200,
@@ -72,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: _loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Sign in with 42'),
+                      : const Text('Sign in with 42'),
                 ),
               ),
             ],
@@ -82,3 +101,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
