@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/user_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,30 +14,39 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _loginController = TextEditingController();
 
   Future<void> login() async {
-    final login = _loginController.text.trim();
-    if (login.isEmpty) {
-      _showError("Please enter a login 42");
-      return;
-    }
+  final login = _loginController.text.trim();
+  if (login.isEmpty) {
+    _showError("Please enter a login 42");
+    return;
+  }
 
-    setState(() => _loading = true);
-    try {
-      final token = await AuthService().login();
-      if (token != null) {
+  setState(() => _loading = true);
+  try {
+    final token = await AuthService().login();
+
+    if (token != null) {
+      final userService = UserService();
+      final exists = await userService.userExists(login, token);
+
+      if (exists) {
         Navigator.pushNamed(
           context,
           '/details',
-          arguments: {'login': login, 'token': token}, 
+          arguments: {'login': login, 'token': token},
         );
       } else {
-        _showError('Authentication failure');
+        _showError('This login 42 does not exist.');
       }
-    } catch (_) {
-      _showError('Network or server error');
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    } else {
+      _showError('Authentication failure');
     }
+  } catch (_) {
+    _showError('Network or server error');
+  } finally {
+    if (mounted) setState(() => _loading = false);
   }
+}
+
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));

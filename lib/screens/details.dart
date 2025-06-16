@@ -45,9 +45,9 @@ Widget build(BuildContext context) {
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : userInfo == null
-            ? const Center(child: Text('Erreur lors du chargement des données.'))
+            ? const Center(child: Text('Error loading data.'))
             : screenHeight <= 250
-                ? const SizedBox.shrink() // Ne rien afficher si trop petit
+                ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -204,13 +204,13 @@ Widget build(BuildContext context) {
     );
 
     if (cursus == null || cursus['skills'] == null) {
-      return const Text('Aucune compétence trouvée.');
+      return const Text('No skills found..');
     }
 
     final skills = cursus['skills'] as List<dynamic>;
 
     return skills.isEmpty
-        ? const Text('Aucune compétence trouvée.')
+        ? const Text('No skills found.')
         : ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -219,7 +219,7 @@ Widget build(BuildContext context) {
               final skill = skills[index];
               return ListTile(
                 title: Text(skill['name']),
-                subtitle: Text('Niveau : ${skill['level'].toStringAsFixed(2)}'),
+                subtitle: Text('Level : ${skill['level'].toStringAsFixed(2)}'),
               );
             },
           );
@@ -229,13 +229,13 @@ Widget build(BuildContext context) {
     final projects = userInfo!['projects_users'] as List<dynamic>?;
 
     if (projects == null || projects.isEmpty) {
-      return const Text('Aucun projet trouvé.');
+      return const Text('No project completed.');
     }
 
     final finishedProjects = projects.where((p) => p['status'] == 'finished').toList();
 
     if (finishedProjects.isEmpty) {
-      return const Text('Aucun projet terminé.');
+      return const Text('No project completed.');
     }
 
     return ListView.builder(
@@ -247,7 +247,7 @@ Widget build(BuildContext context) {
         final validated = p['validated?'] == true;
         return ListTile(
           title: Text(p['project']['name']),
-          subtitle: Text('Note finale : ${p['final_mark'] ?? "N/A"}'),
+          subtitle: Text('Final note : ${p['final_mark'] ?? "N/A"}'),
           trailing: Icon(
             validated ? Icons.check_circle : Icons.cancel,
             color: validated ? Colors.green : Colors.red,
@@ -265,7 +265,7 @@ Widget buildProgressBar(double currentLevel, double maxLevel) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text('Niveau global : ${currentLevel.toStringAsFixed(2)} / $maxLevel',
+      Text('Global level : ${currentLevel.toStringAsFixed(2)} / $maxLevel',
           style: const TextStyle(fontSize: 16)),
       const SizedBox(height: 6),
       Container(
