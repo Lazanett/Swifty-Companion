@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16), // padding autour du scroll
+            padding: const EdgeInsets.all(16),
             child: Container(
               padding: const EdgeInsets.all(48),
               width: 460,
@@ -67,47 +67,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 20),
-                    child: Text(
-                      'Swifty Companion',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+              child: DefaultTextStyle(
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        'Swifty Companion',
+                        style: TextStyle(
+                          fontSize: 32,
+                          // fontWeight.bold déjà pris par DefaultTextStyle
+                          // color: Colors.white aussi
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    TextField(
+                      controller: _loginController,
+                      decoration: const InputDecoration(
+                        labelText: 'Login 42',
+                        hintText: 'ex: lazanett',
+                        labelStyle: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: Colors.white,
+                        ),
+                        hintStyle: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: Colors.white54,
+                        ),
+                      ),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.normal,
                         color: Colors.white,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  TextField(
-                    controller: _loginController,
-                    decoration: const InputDecoration(
-                      labelText: 'Login 42',
-                      hintText: 'ex: lazanett',
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[800],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: 200,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[800],
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.normal,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        child: _loading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Sign in with 42'),
                       ),
-                      child: _loading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Sign in with 42'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -115,4 +136,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }

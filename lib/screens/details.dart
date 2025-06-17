@@ -17,14 +17,31 @@ class _DetailsScreenState extends State<DetailsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     if (args == null || !args.containsKey('login') || !args.containsKey('token')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Reload, go to home page',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+        Navigator.of(context).pushReplacementNamed('/');
+      });
       return;
     }
+
     login = args['login'];
     token = args['token'];
-    _fetchUserInfo();
+
+    // Si déjà des infos, pas besoin de re-fetch
+    if (userInfo == null) {
+      _fetchUserInfo();
+    }
   }
 
   Future<void> _fetchUserInfo() async {
@@ -36,8 +53,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
     });
     //print("coucou");
   }
+  
 @override
 Widget build(BuildContext context) {
+  if (userInfo == null) {
+    return const Scaffold(
+      body: Center(child: Text('Reload required, return to the home page')),
+    );
+  }
   final screenHeight = MediaQuery.of(context).size.height;
 
   return Scaffold(
@@ -81,6 +104,7 @@ Widget build(BuildContext context) {
                                     border: Border.all(color: Colors.white, width: 2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
+                                  
                                   child: SingleChildScrollView(
                                     child: Padding(
                                       padding: const EdgeInsets.all(12.0),
@@ -89,15 +113,15 @@ Widget build(BuildContext context) {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text('${userInfo!['displayname'] ?? 'N/A'}',
-                                              style: const TextStyle(fontSize: 20)),
-                                          Text('${userInfo!['login']}',
-                                              style: const TextStyle(fontSize: 16)),
+                                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                          Text('${userInfo!['login'] ?? 'N/A '}',
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
                                           Text('${userInfo!['email'] ?? 'N/A'}',
-                                              style: const TextStyle(fontSize: 16)),
-                                          Text('Evaluation points : ${userInfo!['correction_point']}',
-                                              style: const TextStyle(fontSize: 16)),
-                                          Text('Wallet : ${userInfo!['wallet']}',
-                                              style: const TextStyle(fontSize: 16)),
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                                          Text('Evaluation points : ${userInfo!['correction_point'] ?? 0}',
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                                          Text('Wallet : ${userInfo!['wallet'] ?? 0}',
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
                                           buildProgressBar(_getGlobalLevel(), 21),
                                         ],
                                       ),
@@ -177,10 +201,6 @@ Widget build(BuildContext context) {
   );
 }
 
-
-
-
-
   double _getGlobalLevel() {
     final cursusUsers = userInfo?['cursus_users'] as List<dynamic>?;
 
@@ -204,13 +224,19 @@ Widget build(BuildContext context) {
     );
 
     if (cursus == null || cursus['skills'] == null) {
-      return const Text('No skills found..');
+      return const Text(
+        'No skills found..',
+        style: TextStyle(fontWeight: FontWeight.normal),
+      );
     }
 
     final skills = cursus['skills'] as List<dynamic>;
 
     return skills.isEmpty
-        ? const Text('No skills found.')
+        ? const Text('No skills found.',
+           style: TextStyle(fontWeight: FontWeight.normal),
+
+        )
         : ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -218,7 +244,7 @@ Widget build(BuildContext context) {
             itemBuilder: (context, index) {
               final skill = skills[index];
               return ListTile(
-                title: Text(skill['name']),
+                title: Text(skill['name'], style: const TextStyle(fontWeight: FontWeight.normal)),
                 subtitle: Text('Level : ${skill['level'].toStringAsFixed(2)}'),
               );
             },
@@ -246,7 +272,7 @@ Widget build(BuildContext context) {
         final p = finishedProjects[index];
         final validated = p['validated?'] == true;
         return ListTile(
-          title: Text(p['project']['name']),
+          title: Text(p['project']['name'], style: const TextStyle(fontWeight: FontWeight.normal)),
           subtitle: Text('Final note : ${p['final_mark'] ?? "N/A"}'),
           trailing: Icon(
             validated ? Icons.check_circle : Icons.cancel,
@@ -266,18 +292,18 @@ Widget buildProgressBar(double currentLevel, double maxLevel) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text('Global level : ${currentLevel.toStringAsFixed(2)} / $maxLevel',
-          style: const TextStyle(fontSize: 16)),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
       const SizedBox(height: 6),
       Container(
         width: double.infinity,
         height: 12,
         decoration: BoxDecoration(
-          color: Colors.white, // fond gris clair
+          color: Colors.white,
           borderRadius: BorderRadius.circular(6),
         ),
         child: FractionallySizedBox(
           alignment: Alignment.centerLeft,
-          widthFactor: percentage, // largeur proportionnelle
+          widthFactor: percentage,
           child: Container(
             decoration: BoxDecoration(
               color:  Colors.grey[800],
@@ -288,4 +314,43 @@ Widget buildProgressBar(double currentLevel, double maxLevel) {
       ),
     ],
   );
+}
+
+bool isUserInfoValid(Map<String, dynamic>? userInfo) {
+  if (userInfo == null) return false;
+
+  
+  final requiredKeys = [
+    'login',
+    'email',
+    'wallet',
+    'correction_point',
+    'image',
+    'displayname',
+    'cursus',
+    'cursus_users',
+    'cursus_id',
+    'level',
+    'skills',
+    'final_mark',
+    'projects_users',
+    'currentLevel',
+    // ajoute les autres clés que tu veux vérifier
+  ];
+
+  for (final key in requiredKeys) {
+    if (!userInfo.containsKey(key) || userInfo[key] == null) {
+      return false;
+    }
+  }
+
+  if (userInfo['image'] is Map<String, dynamic>) {
+    if (userInfo['image']['versions'] == null) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  return true;
 }
