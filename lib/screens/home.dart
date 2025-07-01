@@ -22,7 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   setState(() => _loading = true);
   try {
-    final token = await AuthService().login();
+
+    final auth = AuthService();
+    final tokenisValid = await auth.isTokenValid();
+
+    var token = null;
+    if (!tokenisValid) {
+      token = await auth.getToken();
+    } else {
+      token = await auth.readFromStorage('access_token');
+    }
 
     if (token != null) {
       final userService = UserService();

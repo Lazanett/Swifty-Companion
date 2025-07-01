@@ -23,6 +23,10 @@ class AuthService {
 
   final _storage = const FlutterSecureStorage();
 
+  Future<String?> readFromStorage(String key) async {
+    return await _storage.read(key: key);
+  }
+
   // Stocke token + expiry
   Future<void> _saveToken(String token, int expiresIn) async {
     final expiry = DateTime.now().add(Duration(seconds: expiresIn));
@@ -43,6 +47,21 @@ class AuthService {
     }
     // Token absent ou expiré, on récupère un nouveau token
     return await login();
+  }
+
+  // Vérifie si un token valide est présent
+  Future<bool> isTokenValid() async {
+    final storedToken = await _storage.read(key: 'access_token');
+    final expiryStr = await _storage.read(key: 'expiry');
+
+    if (storedToken != null && expiryStr != null) {
+      final expiry = DateTime.parse(expiryStr);
+      if (DateTime.now().isBefore(expiry)) {
+        return true; // ✅ Token valide
+      }
+    }
+
+    return false; // ❌ Token absent ou expiré
   }
 
   Future<String?> login() async {
