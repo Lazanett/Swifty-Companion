@@ -13,49 +13,41 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   final TextEditingController _loginController = TextEditingController();
 
-  Future<void> login() async {
-  final login = _loginController.text.trim();
-  if (login.isEmpty) {
-    _showError("Please enter a login 42");
-    return;
+  bool isValidLogin(String login) {
+    final regex = RegExp(r'^[a-z0-9_-]+$', caseSensitive: false);
+    return regex.hasMatch(login);
   }
 
-  setState(() => _loading = true);
-  try {
+  Future<void> login() async {
+    final login = _loginController.text.trim();
 
-    final auth = AuthService();
-    final tokenisValid = await auth.isTokenValid();
-
-    var token = null;
-    if (!tokenisValid) {
-      token = await auth.getToken();
-    } else {
-      token = await auth.readFromStorage('access_token');
+    if (login.isEmpty || !isValidLogin(login)) {
+      _showError("Please enter a 42 login");
+      return;
     }
 
-    if (token != null) {
+    setState(() => _loading = true);
+
+    try {
       final userService = UserService();
-      final exists = await userService.userExists(login, token);
+      final exists = await userService.userExists(login);
 
       if (exists) {
+        final token = await AuthService().readFromStorage('access_token');
         Navigator.pushNamed(
           context,
           '/details',
           arguments: {'login': login, 'token': token},
         );
       } else {
-        _showError('This login 42 does not exist.');
+        _showError('This 42 login does not exist.');
       }
-    } else {
-      _showError('Authentication failure');
+    } catch (_) {
+      _showError('Network or server error');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-  } catch (_) {
-    _showError('Network or server error');
-  } finally {
-    if (mounted) setState(() => _loading = false);
   }
-}
-
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -90,8 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Swifty Companion',
                         style: TextStyle(
                           fontSize: 32,
-                          // fontWeight.bold déjà pris par DefaultTextStyle
-                          // color: Colors.white aussi
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -145,5 +135,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }

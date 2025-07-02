@@ -27,48 +27,35 @@ class AuthService {
     return await _storage.read(key: key);
   }
 
-  // Stocke token + expiry
   Future<void> _saveToken(String token, int expiresIn) async {
     final expiry = DateTime.now().add(Duration(seconds: expiresIn));
     await _storage.write(key: 'access_token', value: token);
     await _storage.write(key: 'expiry', value: expiry.toIso8601String());
   }
 
-  // Récupère token en vérifiant expiration
-  Future<String?> getToken() async {
+  Future<String?> getValidToken() async {
     final token = await _storage.read(key: 'access_token');
     final expiryStr = await _storage.read(key: 'expiry');
+
     if (token != null && expiryStr != null) {
       final expiry = DateTime.parse(expiryStr);
-      if (DateTime.now().isBefore(expiry)) {
-        // Token valide
+
+      // Refresh 1 minute before expiration
+      if (DateTime.now().isBefore(expiry.subtract(const Duration(minutes: 1)))) {
         return token;
       }
     }
-    // Token absent ou expiré, on récupère un nouveau token
+
+    // new token if expiring or missing
     return await login();
   }
 
-  // Vérifie si un token valide est présent
-  Future<bool> isTokenValid() async {
-    final storedToken = await _storage.read(key: 'access_token');
-    final expiryStr = await _storage.read(key: 'expiry');
-
-    if (storedToken != null && expiryStr != null) {
-      final expiry = DateTime.parse(expiryStr);
-      if (DateTime.now().isBefore(expiry)) {
-        return true; // ✅ Token valide
-      }
-    }
-
-    return false; // ❌ Token absent ou expiré
-  }
-
+  // generate new token
   Future<String?> login() async {
     try {
       final response = await _helper.getToken();
       final token = response?.accessToken;
-      final expiresIn = response?.expiresIn ?? 7200; // fallback 2h
+      final expiresIn = response?.expiresIn ?? 7200;
 
       if (token != null) {
         await _saveToken(token, expiresIn);

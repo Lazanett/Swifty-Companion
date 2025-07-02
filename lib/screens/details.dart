@@ -46,7 +46,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   Future<void> _fetchUserInfo() async {
     setState(() => _loading = true);
-    final data = await UserService().fetchUserInfo(login, token);
+    final data = await UserService().fetchUserInfo(login); // 1 retrieve user info
     setState(() {
       userInfo = data;
       _loading = false;
@@ -63,7 +63,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Informations of $login')),
+      appBar: AppBar(title: Text('Informations of ${userInfo!['login'] ?? 'N/A'}')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : userInfo == null
@@ -328,10 +328,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
           return ListTile(
             title: Text(projectName, style: const TextStyle(fontWeight: FontWeight.normal)),
             subtitle: Text('Final note : $finalMark'),
-            trailing: Icon(
-              validated ? Icons.check_circle : Icons.cancel,
-              color: validated ? Colors.green : Colors.red,
-            ),
+            trailing: SizedBox(
+              width: 24,
+              child: Icon(
+                validated ? Icons.check_circle : Icons.cancel,
+                color: validated ? Colors.green : Colors.red,
+              ),
+            )
           );
         },
       );
