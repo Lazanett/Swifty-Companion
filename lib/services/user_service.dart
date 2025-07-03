@@ -10,9 +10,6 @@ class UserService {
 
   Future<Map<String, dynamic>?> fetchUserInfo(String login) async {
     final url = '$baseUrl/users/$login';
-
-    //print("url ${url}");
-   //regex
     try {
       final response = await _api.getWithAuth(url); // 2 call ApiService
 

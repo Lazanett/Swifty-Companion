@@ -38,7 +38,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     login = args['login'] ?? '';
     token = args['token'] ?? '';
 
-    // Si déjà des infos, pas besoin de re-fetch
     if (userInfo == null) {
       _fetchUserInfo();
     }
@@ -46,7 +45,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   Future<void> _fetchUserInfo() async {
     setState(() => _loading = true);
-    final data = await UserService().fetchUserInfo(login); // 1 retrieve user info
+    final data = await UserService().fetchUserInfo(login);
     setState(() {
       userInfo = data;
       _loading = false;
@@ -60,6 +59,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
         body: Center(child: Text('Reload required, return to the home page')),
       );
     }
+
+    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -68,7 +69,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : userInfo == null
               ? const Center(child: Text('Error loading data.'))
-              : screenHeight <= 250
+              : screenWidth < 375 || screenHeight <= 250
                   ? const SizedBox.shrink()
                   : Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -82,20 +83,21 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                   child: Container(
                                     alignment: Alignment.center,
                                     padding: const EdgeInsets.only(left: 16.0),
-                                    child: (userInfo?['image'] != null &&
-                                            userInfo!['image'] is Map<String, dynamic> &&
-                                            (userInfo!['image']['versions'] is Map<String, dynamic>))
-                                        ? CircleAvatar(
-                                            radius: 100,
-                                            backgroundImage: NetworkImage(
-                                              userInfo!['image']['versions']['large'] ??
-                                                  '',
+                                    child: (userInfo?['image'] is Map<String, dynamic> &&
+                                            userInfo!['image']['versions'] is Map<String, dynamic>)
+                                        ? ClipOval(
+                                            child: SizedBox(
+                                              width: 200,
+                                              height: 200,
+                                              child: Image.network(
+                                                userInfo!['image']['versions']['large'] ?? '',
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (ctx, err, stack) =>
+                                                    const Icon(Icons.person, size: 100),
+                                              ),
                                             ),
                                           )
-                                        : const CircleAvatar(
-                                            radius: 100,
-                                            child: Icon(Icons.person),
-                                          ),
+                                        : const CircleAvatar(radius: 100, child: Icon(Icons.person)),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -148,14 +150,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
                               ],
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
                           if (screenHeight > 600)
                             Flexible(
                               flex: 6,
                               child: Row(
                                 children: [
+                                  // Section Skills
                                   Expanded(
                                     child: Container(
                                       padding: const EdgeInsets.all(8.0),
@@ -183,6 +184,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 16),
+                                  // Section Projects
                                   Expanded(
                                     child: Container(
                                       padding: const EdgeInsets.all(8.0),
@@ -211,7 +213,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                 ],
                               ),
                             ),
-
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -221,120 +222,64 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   double _getGlobalLevel() {
     final cursusUsers = userInfo?['cursus_users'] as List<dynamic>?;
-
     if (cursusUsers == null || cursusUsers.isEmpty) return 0.0;
-
     final cursus = cursusUsers.firstWhere(
       (c) => c is Map<String, dynamic> && c['cursus_id'] == 21,
       orElse: () => cursusUsers.first,
     );
-
     if (cursus == null || cursus['level'] == null) return 0.0;
-
     final level = cursus['level'];
-    if (level is num) {
-      return level.toDouble();
-    }
-    return 0.0;
+    return (level is num) ? level.toDouble() : 0.0;
   }
 
   Widget _buildSkills() {
     try {
       final cursusUsers = userInfo?['cursus_users'] as List<dynamic>?;
-
-      if (cursusUsers == null || cursusUsers.isEmpty) {
-        return const Text(
-          'No skills found..',
-          style: TextStyle(fontWeight: FontWeight.normal),
-        );
-      }
-
+      if (cursusUsers == null || cursusUsers.isEmpty) return const Text('No skills found..');
       final cursus = cursusUsers.firstWhere(
         (c) => c is Map<String, dynamic> && c['cursus_id'] == 21,
         orElse: () => cursusUsers.first,
       );
-
-      if (cursus == null || cursus['skills'] == null) {
-        return const Text(
-          'No skills found..',
-          style: TextStyle(fontWeight: FontWeight.normal),
-        );
-      }
-
-      final skills = cursus['skills'] as List<dynamic>? ?? [];
-
-      if (skills.isEmpty) {
-        return const Text(
-          'No skills found.',
-          style: TextStyle(fontWeight: FontWeight.normal),
-        );
-      }
-
+      final skills = (cursus['skills'] as List<dynamic>?) ?? [];
+      if (skills.isEmpty) return const Text('No skills found.');
       return ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: skills.length,
-        itemBuilder: (context, index) {
-          final skill = skills[index] as Map<String, dynamic>? ?? {};
-          final skillName = skill['name'] ?? 'Unnamed skill';
-          final skillLevel = skill['level'] is num
-              ? (skill['level'] as num).toDouble().toStringAsFixed(2)
-              : '0.00';
-
+        itemBuilder: (context, i) {
+          final skill = skills[i] as Map<String, dynamic>? ?? {};
+          final level = (skill['level'] is num) ? (skill['level'] as num).toDouble().toStringAsFixed(2) : '0.00';
           return ListTile(
-            title: Text(skillName, style: const TextStyle(fontWeight: FontWeight.normal)),
-            subtitle: Text('Level : $skillLevel'),
+            title: Text(skill['name'] ?? 'Unnamed skill'),
+            subtitle: Text('Level : $level'),
           );
         },
       );
     } catch (_) {
-      return const Text(
-        'No skills found..',
-        style: TextStyle(fontWeight: FontWeight.normal),
-      );
+      return const Text('No skills found..');
     }
   }
 
   Widget _buildProjects() {
     try {
       final projects = userInfo?['projects_users'] as List<dynamic>?;
-
-      if (projects == null || projects.isEmpty) {
-        return const Text('No project completed.');
-      }
-
-      final finishedProjects = projects.where((p) {
-        if (p is Map<String, dynamic>) {
-          return p['status'] == 'finished';
-        }
-        return false;
-      }).toList();
-
-      if (finishedProjects.isEmpty) {
-        return const Text('No project completed.');
-      }
-
+      if (projects == null || projects.isEmpty) return const Text('No project completed.');
+      final finished = projects.where((p) => p is Map<String, dynamic> && p['status'] == 'finished').toList();
+      if (finished.isEmpty) return const Text('No project completed.');
       return ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: finishedProjects.length,
-        itemBuilder: (context, index) {
-          final p = finishedProjects[index] as Map<String, dynamic>? ?? {};
+        itemCount: finished.length,
+        itemBuilder: (context, i) {
+          final p = finished[i] as Map<String, dynamic>? ?? {};
           final project = p['project'] as Map<String, dynamic>? ?? {};
-          final projectName = project['name'] ?? 'Unnamed project';
-          final finalMark = p['final_mark']?.toString() ?? 'N/A';
+          final mark = p['final_mark']?.toString() ?? 'N/A';
           final validated = p['validated?'] == true;
-
           return ListTile(
-            title: Text(projectName, style: const TextStyle(fontWeight: FontWeight.normal)),
-            subtitle: Text('Final note : $finalMark'),
-            trailing: SizedBox(
-              width: 24,
-              child: Icon(
-                validated ? Icons.check_circle : Icons.cancel,
-                color: validated ? Colors.green : Colors.red,
-              ),
-            )
+            title: Text(project['name'] ?? 'Unnamed project'),
+            subtitle: Text('Final note : $mark'),
+            trailing: Icon(validated ? Icons.check_circle : Icons.cancel,
+                           color: validated ? Colors.green : Colors.red),
           );
         },
       );
@@ -345,30 +290,26 @@ class _DetailsScreenState extends State<DetailsScreen> {
 }
 
 Widget buildProgressBar(double currentLevel, double maxLevel) {
-  final double percentage = (currentLevel / maxLevel).clamp(0.0, 1.0);
-
+  final percentage = (currentLevel / maxLevel).clamp(0.0, 1.0);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         'Global level : ${currentLevel.toStringAsFixed(2)} / $maxLevel',
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+        style: const TextStyle(fontSize: 16),
       ),
       const SizedBox(height: 6),
       Container(
-        width: double.infinity,
-        height: 12,
+        width: double.infinity, height: 12,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
+          color: Colors.white, borderRadius: BorderRadius.circular(6),
         ),
         child: FractionallySizedBox(
           alignment: Alignment.centerLeft,
           widthFactor: percentage,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(6),
+              color: Colors.grey[800], borderRadius: BorderRadius.circular(6),
             ),
           ),
         ),
